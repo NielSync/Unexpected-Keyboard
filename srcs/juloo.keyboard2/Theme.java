@@ -200,11 +200,13 @@ public class Theme
               bg_paint.setColor(theme.colorKeySpaceBar);
               border_width = theme.keyBorderWidthSpaceBar;
               break;
-            case Suggestion:
-              bg_paint.setColor(0);
-              border_width = 0;
-              break;
+            // Suggestion keys (the middle column of the split layout) are
+            // styled like normal keys so they follow the current theme.
+            // They used to be transparent, but [setAlpha] below turned the
+            // transparent black into a visible black bar.
             default:
+            case Suggestion:
+            case Normal:
               bg_paint.setColor(theme.colorKey);
               border_width = config.borderConfig ? config.customBorderLineWidth : theme.keyBorderWidth;
               break;
