@@ -144,6 +144,7 @@ public class Keyboard2 extends InputMethodService
     _config.handler = _keyeventhandler;
     prefs.registerOnSharedPreferenceChangeListener(this);
     Logs.set_debug_logs(getResources().getBoolean(R.bool.debug_logs));
+    GestureTyping.instance().restore(this);
     refreshSubtypeImm();
     create_keyboard_view();
     ClipboardHistoryService.on_startup(this, _keyeventhandler);
@@ -262,7 +263,7 @@ public class Keyboard2 extends InputMethodService
   @Override
   public void onStartInputView(EditorInfo info, boolean restarting)
   {
-    _config.editor_config.refresh(info, getResources());
+    _config.editor_config.refresh(info, getResources(), _config);
     refresh_config();
     _currentSpecialLayout = refresh_special_layout();
     _keyboard_layout_view.setKeyboard(current_layout());

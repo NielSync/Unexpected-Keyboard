@@ -136,6 +136,16 @@ public final class KeyEventHandler
     suggestion_entered(text, _config.suggestions_add_space);
   }
 
+  /** A word gesture (key to key swipe) has been performed: decode the
+      recorded stroke and show the suggested words in the candidates view. */
+  @Override
+  public void word_gesture_input(
+      org.dslul.openboard.inputmethod.latin.common.InputPointers pointers)
+  {
+    String[] words = GestureTyping.instance().decode(pointers);
+    _suggestions.set_gesture_candidates(words);
+  }
+
   public void suggestion_entered(String text, boolean add_space_after)
   {
     if (add_space_after)

@@ -27,7 +27,8 @@ android {
   sourceSets {
     named("main") {
       manifest.srcFile("AndroidManifest.xml")
-      java.srcDirs("srcs/juloo.keyboard2", "vendor/cdict/java/juloo.cdict")
+      java.srcDirs("srcs/juloo.keyboard2", "vendor/cdict/java/juloo.cdict", "srcs/gesture")
+      jniLibs.srcDirs("jniLibs")
       res.srcDirs("res", "build/generated-resources")
       assets.srcDirs("assets")
     }

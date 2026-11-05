@@ -188,12 +188,16 @@ public class CandidatesView extends LinearLayout
         });
   }
 
-  /** Whether the candidates view should be shown for a given editor. */
-  public static boolean should_show(EditorInfo info)
+  /** Whether the candidates view should be shown for a given editor.
+      [force] shows suggestions in every text field, [ignore_uri] opts URL
+      bars back out. */
+  public static boolean should_show(EditorInfo info, boolean force,
+      boolean ignore_uri)
   {
+    int class_ = info.inputType & InputType.TYPE_MASK_CLASS;
     int variation = info.inputType & InputType.TYPE_MASK_VARIATION;
     int flags = info.inputType & InputType.TYPE_MASK_FLAGS;
-    switch (info.inputType & InputType.TYPE_MASK_CLASS)
+    switch (class_)
     {
       case InputType.TYPE_CLASS_TEXT:
         switch (variation)
@@ -202,18 +206,26 @@ public class CandidatesView extends LinearLayout
           case InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD:
           case InputType.TYPE_TEXT_VARIATION_WEB_PASSWORD:
             return false;
-          default:
-            /* Editor requested that we don't show suggestions. Enable
-               suggestions anyway when the flags [NO_SUGGESTIONS] and
-               [AUTO_CORRECT] are present at the same time. This happens with
-               Google Keep. */
-            if ((flags &
-                  (InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
-                   | InputType.TYPE_TEXT_FLAG_AUTO_CORRECT))
-                == InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS)
+          case InputType.TYPE_TEXT_VARIATION_URI:
+            // URL bars never receive suggestions unless forced.
+            if (ignore_uri)
               return false;
-            return true;
+            break;
+          default:
+            break;
         }
+        if (force)
+          return true;
+        /* Editor requested that we don't show suggestions. Enable
+           suggestions anyway when the flags [NO_SUGGESTIONS] and
+           [AUTO_CORRECT] are present at the same time. This happens with
+           Google Keep. */
+        if ((flags &
+              (InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+               | InputType.TYPE_TEXT_FLAG_AUTO_CORRECT))
+            == InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS)
+          return false;
+        return true;
       case InputType.TYPE_CLASS_NUMBER:
         // Beware of TYPE_NUMBER_VARIATION_PASSWORD
         return false;
