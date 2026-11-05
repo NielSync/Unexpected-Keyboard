@@ -2,17 +2,12 @@ package juloo.keyboard2;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.res.Configuration;
-import android.database.Cursor;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceGroup;
-import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
-import android.provider.OpenableColumns;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.ViewGroup;
@@ -37,7 +32,24 @@ public class SettingsActivity extends PreferenceActivity
 {
   private static final int REQ_EXPORT = 1;
   private static final int REQ_IMPORT = 2;
-  private static final int REQ_GESTURE_DICT = 3;
+
+  /** Extra search terms for settings whose title doesn't use the words
+      people search for. */
+  private static final Map<String, String> SEARCH_KEYWORDS;
+  static {
+    Map<String, String> m = new HashMap<String, String>();
+    m.put("backup_settings", "save copy export json");
+    m.put("restore_settings", "load copy import json");
+    m.put("number_row", "digits top row");
+    m.put("swipe_dist", "swipe corners");
+    m.put("circle_sensitivity", "swipe round gesture");
+    m.put("slider_sensitivity", "swipe slide cursor");
+    m.put("suggestions", "completion spell autocorrect");
+    m.put("force_suggestions", "everywhere always");
+    m.put("suggestions_ignore_uri", "browser address url bar");
+    m.put("clipboard_history_duration", "paste");
+    SEARCH_KEYWORDS = m;
+  }
 
   /** The settings screen, saved before a search replaces it. */
   PreferenceScreen _root_screen;
@@ -112,15 +124,15 @@ public class SettingsActivity extends PreferenceActivity
     _search_input = new EditText(this);
     _search_input.setHint(R.string.search_settings_hint);
     _search_input.setSingleLine(true);
-    // Square outlined box, matching the minimal style of the settings.
-    _search_input.setBackgroundResource(R.drawable.search_box);
-    int pad_h = (int)(12.f * density);
-    int pad_v = (int)(9.f * density);
-    _search_input.setPadding(pad_h, pad_v, pad_h, pad_v);
+    // The underline is drawn at the bottom of the view: extra bottom
+    // padding moves the text and the cursor up, away from the line.
+    int pad_h = (int)(4.f * density);
+    _search_input.setPadding(pad_h, (int)(2.f * density), pad_h,
+        (int)(16.f * density));
     LinearLayout box = new LinearLayout(this);
     box.setOrientation(LinearLayout.VERTICAL);
     int margin = (int)(12.f * density);
-    box.setPadding(margin, margin, margin, (int)(2.f * density));
+    box.setPadding(margin, margin, margin, 0);
     box.addView(_search_input, new LinearLayout.LayoutParams(
           ViewGroup.LayoutParams.MATCH_PARENT,
           ViewGroup.LayoutParams.WRAP_CONTENT));
@@ -175,8 +187,12 @@ public class SettingsActivity extends PreferenceActivity
       }
       else if (p instanceof PreferenceGroup)
       {
-        // Categories are not settings, only index their children.
-        collect_entries((PreferenceGroup)p, path, breadcrumb, out);
+        // Categories are not settings, only index their children. The
+        // category title becomes part of the breadcrumb so that searching
+        // for it finds the settings it contains.
+        String crumb = breadcrumb.equals("") ? title_of(p) :
+          breadcrumb + " > " + title_of(p);
+        collect_entries((PreferenceGroup)p, path, crumb, out);
       }
       else
       {
@@ -215,9 +231,11 @@ public class SettingsActivity extends PreferenceActivity
       String title = title_of(entry.pref);
       CharSequence summary_cs = entry.pref.getSummary();
       String summary = (summary_cs != null) ? summary_cs.toString() : "";
+      String keywords = SEARCH_KEYWORDS.get(entry.pref.getKey());
       if (!title.toLowerCase().contains(query)
           && !summary.toLowerCase().contains(query)
-          && !entry.breadcrumb.toLowerCase().contains(query))
+          && !entry.breadcrumb.toLowerCase().contains(query)
+          && (keywords == null || !keywords.toLowerCase().contains(query)))
         continue;
       Preference result = new Preference(this);
       result.setTitle(title);
@@ -247,54 +265,64 @@ public class SettingsActivity extends PreferenceActivity
     _updating_screen = false;
   }
 
-  /** Open the screen containing [target] and scroll its list to it. */
+  /** Perform the action of the selected setting and scroll its list to it. */
   private void navigate_to(final List<String> screen_keys, final Preference target)
   {
     _search_input.setText(""); // Leaves the search results
-    PreferenceScreen screen = _root_screen;
-    if (!screen_keys.isEmpty())
+    if (screen_keys.isEmpty())
     {
+      // The setting sits in the main list: launch its action, then scroll
+      // to it so the change is visible.
+      trigger_preference(target);
+      scroll_list_to(getListView(), _root_screen, target);
+    }
+    else
+    {
+      // The setting lives in a nested screen (the settings only nest one
+      // level deep): open the screen and scroll to the setting inside it.
+      // Its action is not launched automatically.
       Preference next = _root_screen.findPreference(screen_keys.get(0));
       if (!(next instanceof PreferenceScreen))
         return;
-      screen = (PreferenceScreen)next;
-      // Nested screens are shown in a dialog when clicked. The dialog
-      // mechanism is not exposed through the public API, the same private
-      // method as a click has been used since API 1 is called here. When it
-      // fails the main list is scrolled to the screen entry instead.
-      if (!open_preference_screen(screen))
-      {
-        scroll_list_to(getListView(), _root_screen, screen);
-        return;
-      }
-    }
-    // The dialog list takes a moment to be bound before it can be scrolled.
-    final PreferenceScreen target_screen = screen;
-    getListView().postDelayed(new Runnable()
-      {
-        public void run()
+      final PreferenceScreen screen = (PreferenceScreen)next;
+      trigger_preference(screen);
+      // The dialog list takes a moment to be bound before it can be
+      // scrolled.
+      getListView().postDelayed(new Runnable()
         {
-          try
+          public void run()
           {
-            android.widget.ListView lv = (target_screen == _root_screen) ? getListView() :
-              (android.widget.ListView)target_screen.getDialog()
-                .findViewById(android.R.id.list);
-            if (lv != null)
-              scroll_list_to(lv, target_screen, target);
+            try
+            {
+              android.widget.ListView lv = (screen.getDialog() != null) ?
+                (android.widget.ListView)screen.getDialog()
+                  .findViewById(android.R.id.list) : getListView();
+              if (lv != null)
+                scroll_list_to(lv, screen, target);
+            }
+            catch (Exception _e) {} // The dialog might be gone already
           }
-          catch (Exception _e) {} // The dialog might be gone already
-        }
-      }, 200);
+        }, 200);
+    }
   }
 
-  private boolean open_preference_screen(PreferenceScreen screen)
+  /** Perform a preference's action as if it had been clicked: its click
+      listener first, then the click handling of the preference itself
+      (toggles a checkbox, opens a dialog or a nested screen). [onClick()]
+      is protected and there is no public perform click method in the legacy
+      preference framework, so it is invoked through reflection. */
+  private boolean trigger_preference(Preference pref)
   {
+    Preference.OnPreferenceClickListener listener =
+      pref.getOnPreferenceClickListener();
+    if (listener != null)
+      return listener.onPreferenceClick(pref);
     try
     {
       java.lang.reflect.Method m =
-        PreferenceScreen.class.getDeclaredMethod("showDialog", Bundle.class);
+        Preference.class.getDeclaredMethod("onClick");
       m.setAccessible(true);
-      m.invoke(screen, (Bundle)null);
+      m.invoke(pref);
       return true;
     }
     catch (Exception e)
@@ -348,16 +376,6 @@ public class SettingsActivity extends PreferenceActivity
         });
   }
 
-  /** Open the file picker to select a gesture dictionary. Called from
-      [GestureDictionaryPreference]. */
-  public void pick_gesture_dictionary()
-  {
-    Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-    i.addCategory(Intent.CATEGORY_OPENABLE);
-    i.setType("*/*");
-    startActivityForResult(i, REQ_GESTURE_DICT);
-  }
-
   @Override
   protected void onActivityResult(int req, int res, Intent data)
   {
@@ -367,7 +385,6 @@ public class SettingsActivity extends PreferenceActivity
     {
       case REQ_EXPORT: export_settings(data.getData()); break;
       case REQ_IMPORT: import_settings(data.getData()); break;
-      case REQ_GESTURE_DICT: load_gesture_dictionary(data.getData()); break;
     }
   }
 
@@ -481,37 +498,5 @@ public class SettingsActivity extends PreferenceActivity
     {
       toast(R.string.restore_failure);
     }
-  }
-
-  private void load_gesture_dictionary(Uri uri)
-  {
-    String name = null;
-    Cursor c = getContentResolver().query(uri, null, null, null, null);
-    if (c != null)
-    {
-      int idx = c.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-      if (c.moveToFirst() && idx >= 0)
-        name = c.getString(idx);
-      c.close();
-    }
-    if (!GestureTyping.instance().lib_available())
-    {
-      toast(R.string.gesture_library_missing);
-      return;
-    }
-    if (GestureTyping.instance().set_dictionary(this, uri, name))
-    {
-      if (Config.globalConfig() != null)
-        Config.globalPrefs().edit()
-          .putString("gesture_dictionary_name", name).apply();
-      toast(R.string.restore_success);
-    }
-    else
-    {
-      toast(R.string.gesture_dictionary_failed);
-    }
-    Preference p = findPreference("gesture_dictionary");
-    if (p instanceof juloo.keyboard2.prefs.GestureDictionaryPreference)
-      ((juloo.keyboard2.prefs.GestureDictionaryPreference)p).update_summary();
   }
 }
