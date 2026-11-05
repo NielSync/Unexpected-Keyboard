@@ -178,6 +178,8 @@
     <string name="pref_force_suggestions_summary">Show the suggestion bar in every text field, even when the app asks not to. Password fields are always excluded.</string>
     <string name="pref_suggestions_ignore_uri_title">Ignore URL bars</string>
     <string name="pref_suggestions_ignore_uri_summary">Don\'t show suggestions in URL bars, even when forcing suggestions</string>
+    <string name="pref_shift_selection_case_title">Selection case with shift</string>
+    <string name="pref_shift_selection_case_summary">Pressing shift with a text selection cycles its capitalization (lower, UPPER, Title) instead of latching shift</string>
 
     <string name="pref_category_gesture">Gesture typing</string>
     <string name="pref_gesture_typing_title">Word swipe typing</string>

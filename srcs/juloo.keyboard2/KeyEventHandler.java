@@ -139,6 +139,8 @@ public final class KeyEventHandler
   @Override
   public boolean modifier_transforms_selection(KeyValue kv)
   {
+    if (!_config.shift_selection_case)
+      return false;
     if (kv.getKind() != KeyValue.Kind.Modifier
         || kv.getModifier() != KeyValue.Modifier.SHIFT)
       return false;
@@ -154,6 +156,8 @@ public final class KeyEventHandler
       bar until the selection is dismissed. */
   void cycle_selection_case()
   {
+    if (!_config.shift_selection_case)
+      return;
     InputConnection conn = _recv.getCurrentInputConnection();
     if (conn == null)
       return;

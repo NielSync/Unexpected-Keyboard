@@ -19,6 +19,7 @@
     <CheckBoxPreference android:key="suggestions_add_space" android:title="@string/pref_suggestions_add_space_title" android:summary="@string/pref_suggestions_add_space_summary" android:defaultValue="true"/>
     <CheckBoxPreference android:key="force_suggestions" android:title="@string/pref_force_suggestions_title" android:summary="@string/pref_force_suggestions_summary" android:defaultValue="false"/>
     <CheckBoxPreference android:key="suggestions_ignore_uri" android:title="@string/pref_suggestions_ignore_uri_title" android:summary="@string/pref_suggestions_ignore_uri_summary" android:defaultValue="false"/>
+    <CheckBoxPreference android:key="shift_selection_case" android:title="@string/pref_shift_selection_case_title" android:summary="@string/pref_shift_selection_case_summary" android:defaultValue="true"/>
   </PreferenceCategory>
   <PreferenceCategory android:title="@string/pref_category_gesture">
     <CheckBoxPreference android:key="gesture_typing" android:title="@string/pref_gesture_typing_title" android:summary="@string/pref_gesture_typing_summary" android:defaultValue="false"/>

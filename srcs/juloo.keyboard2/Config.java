@@ -50,6 +50,8 @@ public final class Config
   public boolean force_suggestions;
   /** Don't show suggestions in URL bars, even when forced. */
   public boolean suggestions_ignore_uri;
+  /** Cycle the capitalization of the selected text when shift is pressed. */
+  public boolean shift_selection_case;
   /** Word gesture typing (key to key swiping). */
   public boolean gesture_typing_enabled;
   // Let the system handle vibration when false.
@@ -158,6 +160,7 @@ public final class Config
     suggestions_add_space = _prefs.getBoolean("suggestions_add_space", true);
     force_suggestions = _prefs.getBoolean("force_suggestions", false);
     suggestions_ignore_uri = _prefs.getBoolean("suggestions_ignore_uri", false);
+    shift_selection_case = _prefs.getBoolean("shift_selection_case", true);
     gesture_typing_enabled = _prefs.getBoolean("gesture_typing", false);
     // The baseline for the swipe distance correspond to approximately the
     // width of a key in portrait mode, as most layouts have 10 columns.
