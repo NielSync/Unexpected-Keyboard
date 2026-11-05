@@ -189,25 +189,6 @@ public final class Pointers implements Handler.Callback
     _handler.onPointerFlagsChanged(true);
   }
 
-  /** Whether the pointer is currently sliding (a slider key is active). */
-  public boolean is_sliding(int pointerId)
-  {
-    Pointer ptr = getPtr(pointerId);
-    return ptr != null && ptr.hasFlagsAny(FLAG_P_SLIDING);
-  }
-
-  /** Remove a pointer without sending the corresponding key. Used when word
-      gesture typing takes over a pointer. */
-  public void cancel_pointer(int pointerId)
-  {
-    Pointer ptr = getPtr(pointerId);
-    if (ptr == null)
-      return;
-    stopLongPress(ptr);
-    removePtr(ptr);
-    _handler.onPointerFlagsChanged(false);
-  }
-
   /* Whether an other pointer is down on a non-special key. */
   private boolean isOtherPointerDown()
   {

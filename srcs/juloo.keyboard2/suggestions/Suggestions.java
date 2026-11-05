@@ -48,19 +48,6 @@ public final class Suggestions
     _callback.set_suggestions(this);
   }
 
-  /** Show the candidates produced by word gesture typing. They stay visible
-      until the typed word changes. */
-  public void set_gesture_candidates(String[] words)
-  {
-    if (!_enabled)
-      return;
-    clear();
-    for (int i = 0; i < MAX_COUNT && i < words.length; i++)
-      suggestions[i] = words[i];
-    count = Math.min(words.length, MAX_COUNT);
-    _callback.set_suggestions(this);
-  }
-
   void clear()
   {
     count = 0;

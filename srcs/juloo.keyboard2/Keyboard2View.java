@@ -17,8 +17,6 @@ import android.view.Window;
 import android.view.WindowInsets;
 import android.view.WindowManager;
 import android.view.WindowMetrics;
-import com.android.inputmethod.keyboard.ProximityInfo;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -37,14 +35,6 @@ public class Keyboard2View extends View
   private Pointers _pointers;
 
   private Pointers.Modifiers _mods;
-
-  /** Word gesture (key to key swipe) being recorded, [null] when word
-      gesture typing is disabled or no pointer is down. */
-  private WordGesture _word_gesture;
-
-  /** Keyboard and dimensions the proximity info was built from. */
-  private KeyboardData _proximity_keyboard = null;
-  private float _proximity_key_width = -1.f;
 
   private static int _currentWhat = 0;
 
@@ -211,14 +201,6 @@ public class Keyboard2View extends View
     {
       case MotionEvent.ACTION_UP:
       case MotionEvent.ACTION_POINTER_UP:
-        p = event.getActionIndex();
-        if (_word_gesture != null
-            && event.getPointerId(p) == _word_gesture.pointer_id())
-        {
-          if (_word_gesture.started())
-            _config.handler.word_gesture_input(_word_gesture.pointers());
-          _word_gesture = null;
-        }
         _pointers.onTouchUp(event.getPointerId(event.getActionIndex()));
         break;
       case MotionEvent.ACTION_DOWN:
@@ -229,54 +211,18 @@ public class Keyboard2View extends View
         KeyboardData.Key key = getKeyAtPosition(tx, ty);
         if (key != null)
           _pointers.onTouchDown(tx, ty, event.getPointerId(p), key);
-        // A second pointer down cancels the word gesture being recorded.
-        if (_word_gesture != null
-            && event.getPointerId(p) != _word_gesture.pointer_id())
-          _word_gesture = null;
-        if (_word_gesture == null && word_gesture_possible())
-          _word_gesture = new WordGesture(event.getPointerId(p), tx, ty,
-              (int)event.getEventTime(), key, _keyWidth);
         break;
       case MotionEvent.ACTION_MOVE:
         for (p = 0; p < event.getPointerCount(); p++)
-        {
           _pointers.onTouchMove(event.getX(p), event.getY(p), event.getPointerId(p));
-          if (_word_gesture != null
-              && event.getPointerId(p) == _word_gesture.pointer_id()
-              && !_word_gesture.aborted()
-              && !_pointers.is_sliding(_word_gesture.pointer_id()))
-          {
-            WordGesture.State st = _word_gesture.feed(event.getX(p),
-                event.getY(p), (int)event.getEventTime(),
-                getKeyAtPosition(event.getX(p), event.getY(p)));
-            // The word gesture takes the pointer over: remove it from
-            // [Pointers] so the pressed key and the swipes are cancelled.
-            if (st == WordGesture.State.Started
-                && !_word_gesture.start_notified())
-            {
-              _word_gesture.mark_start_notified();
-              _pointers.cancel_pointer(_word_gesture.pointer_id());
-            }
-          }
-        }
         break;
       case MotionEvent.ACTION_CANCEL:
-        _word_gesture = null;
         _pointers.onTouchCancel();
         break;
       default:
         return (false);
     }
     return (true);
-  }
-
-  /** Whether a pointer starting now might be recorded as a word gesture. */
-  private boolean word_gesture_possible()
-  {
-    return _config.gesture_typing_enabled
-      && GestureTyping.instance().is_ready()
-      && _config.suggestions_enabled
-      && _config.editor_config.should_show_candidates_view;
   }
 
   private KeyboardData.Row getRowAtPosition(float ty)
@@ -341,45 +287,6 @@ public class Keyboard2View extends View
       (int)(_tc.row_height * _keyboard.keysHeight
           + _config.marginTop + _marginBottom);
     setMeasuredDimension(width, height);
-    if (_config.gesture_typing_enabled)
-      rebuild_proximity_info();
-  }
-
-  /** Describe the current layout to the gesture decoder. The key
-      coordinates are pixels in this view, the same space the touch events
-      are recorded in. */
-  private void rebuild_proximity_info()
-  {
-    // Never touch the native library when it failed to load.
-    if (!GestureTyping.instance().lib_available())
-      return;
-    if (_keyboard == _proximity_keyboard && _keyWidth == _proximity_key_width)
-      return;
-    _proximity_keyboard = _keyboard;
-    _proximity_key_width = _keyWidth;
-    float row_height = _tc.row_height;
-    ArrayList<ProximityInfo.KeyInfo> keys = new ArrayList<ProximityInfo.KeyInfo>();
-    float y = _config.marginTop;
-    for (KeyboardData.Row row : _keyboard.rows)
-    {
-      y += row.shift * row_height;
-      int key_height = (int)(row.height * row_height);
-      float x = _marginLeft;
-      for (KeyboardData.Key k : row.keys)
-      {
-        float xLeft = x + k.shift * _keyWidth;
-        float key_width = k.width * _keyWidth;
-        KeyValue kv = k.keys[0];
-        if (kv != null && kv.getKind() == KeyValue.Kind.Char)
-          keys.add(new ProximityInfo.KeyInfo((int)xLeft, (int)y,
-                (int)key_width, key_height, (int)kv.getChar()));
-        x = xLeft + key_width;
-      }
-      y += row.height * row_height;
-    }
-    GestureTyping.instance().set_proximity_info(new ProximityInfo(
-          getMeasuredWidth(), getMeasuredHeight(),
-          (int)_keyWidth, (int)row_height, keys));
   }
 
   Rect _cached_exclusion_rect = new Rect();
