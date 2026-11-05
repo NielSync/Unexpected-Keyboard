@@ -58,6 +58,21 @@ public class SettingsActivity extends PreferenceActivity
       set while the search text is being modified. */
   boolean _updating_screen = false;
 
+  /** Sync each preference change to the protected storage right away, so
+      the keyboard picks up the new values immediately: it reads and listens
+      on the protected storage preferences, which are otherwise only synced
+      in [onStop]. */
+  final SharedPreferences.OnSharedPreferenceChangeListener _prefs_sync =
+    new SharedPreferences.OnSharedPreferenceChangeListener()
+    {
+      @Override
+      public void onSharedPreferenceChanged(SharedPreferences prefs, String key)
+      {
+        DirectBootAwarePreferences.copy_preferences_to_protected_storage(
+            SettingsActivity.this, prefs);
+      }
+    };
+
   @Override
   public void onCreate(Bundle savedInstanceState)
   {
@@ -73,6 +88,8 @@ public class SettingsActivity extends PreferenceActivity
     catch (Exception _e) { fallbackEncrypted(); return; }
     addPreferencesFromResource(R.xml.settings);
     _root_screen = getPreferenceScreen();
+    getPreferenceManager().getSharedPreferences()
+      .registerOnSharedPreferenceChangeListener(_prefs_sync);
 
     bind_backup_preferences();
     add_search_bar();
@@ -98,6 +115,14 @@ public class SettingsActivity extends PreferenceActivity
       .copy_preferences_to_protected_storage(this,
           getPreferenceManager().getSharedPreferences());
     super.onStop();
+  }
+
+  @Override
+  public void onDestroy()
+  {
+    getPreferenceManager().getSharedPreferences()
+      .unregisterOnSharedPreferenceChangeListener(_prefs_sync);
+    super.onDestroy();
   }
 
   @Override
