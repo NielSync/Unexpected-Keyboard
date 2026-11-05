@@ -148,8 +148,10 @@ public final class KeyEventHandler
   }
 
   /** Cycle the capitalization of the selected text through lower case,
-      UPPER CASE and Title Case. The selection is kept on the transformed
-      text so that the next press keeps cycling. */
+      UPPER CASE and Title Case. The cursor is left at the end of the
+      transformed text: keeping the selection would make the keyboard enter
+      the selection mode, breaking the suggestions and remapping the space
+      bar until the selection is dismissed. */
   void cycle_selection_case()
   {
     InputConnection conn = _recv.getCurrentInputConnection();
@@ -168,13 +170,7 @@ public final class KeyEventHandler
       next = to_lower_case(s);
     else
       next = upper;
-    ExtractedText et = conn.getExtractedText(new ExtractedTextRequest(), 0);
-    int sel_start = (et == null) ? -1 : et.selectionStart;
-    conn.beginBatchEdit();
     conn.commitText(next, 1);
-    if (sel_start >= 0)
-      conn.setSelection(sel_start, sel_start + next.length());
-    conn.endBatchEdit();
   }
 
   /** Change the case of each character on a one to one basis, unlike
