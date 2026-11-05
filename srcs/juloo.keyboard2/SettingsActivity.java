@@ -124,11 +124,13 @@ public class SettingsActivity extends PreferenceActivity
     _search_input = new EditText(this);
     _search_input.setHint(R.string.search_settings_hint);
     _search_input.setSingleLine(true);
-    // The underline is drawn at the bottom of the view: extra bottom
-    // padding moves the text and the cursor up, away from the line.
-    int pad_h = (int)(4.f * density);
-    _search_input.setPadding(pad_h, (int)(2.f * density), pad_h,
-        (int)(16.f * density));
+    // No background: the line under the field is a separate view, so the
+    // gap between the text, the cursor and the line is fully controlled.
+    _search_input.setBackground(null);
+    _search_input.setPadding((int)(4.f * density), (int)(8.f * density),
+        (int)(4.f * density), (int)(10.f * density));
+    android.view.View line = new android.view.View(this);
+    line.setBackgroundResource(R.drawable.search_line);
     LinearLayout box = new LinearLayout(this);
     box.setOrientation(LinearLayout.VERTICAL);
     int margin = (int)(12.f * density);
@@ -136,6 +138,8 @@ public class SettingsActivity extends PreferenceActivity
     box.addView(_search_input, new LinearLayout.LayoutParams(
           ViewGroup.LayoutParams.MATCH_PARENT,
           ViewGroup.LayoutParams.WRAP_CONTENT));
+    box.addView(line, new LinearLayout.LayoutParams(
+          ViewGroup.LayoutParams.MATCH_PARENT, (int)(2.f * density)));
     ViewGroup list_parent = (ViewGroup)getListView().getParent();
     list_parent.addView(box, 0);
     _search_input.addTextChangedListener(new TextWatcher()
@@ -274,7 +278,15 @@ public class SettingsActivity extends PreferenceActivity
       // The setting sits in the main list: launch its action, then scroll
       // to it so the change is visible.
       trigger_preference(target);
-      scroll_list_to(getListView(), _root_screen, target);
+      // Scroll only after the list has been re-bound, otherwise it is
+      // scrolled back to the top by the layout pass.
+      getListView().postDelayed(new Runnable()
+        {
+          public void run()
+          {
+            scroll_list_to(getListView(), _root_screen, target);
+          }
+        }, 200);
     }
     else
     {
@@ -307,16 +319,22 @@ public class SettingsActivity extends PreferenceActivity
   }
 
   /** Perform a preference's action as if it had been clicked: its click
-      listener first, then the click handling of the preference itself
-      (toggles a checkbox, opens a dialog or a nested screen). [onClick()]
-      is protected and there is no public perform click method in the legacy
-      preference framework, so it is invoked through reflection. */
+      listener first, then the public setChecked for the checkboxes. Only
+      the dialogs and the nested screens need the protected [onClick()],
+      invoked through reflection. */
   private boolean trigger_preference(Preference pref)
   {
     Preference.OnPreferenceClickListener listener =
       pref.getOnPreferenceClickListener();
     if (listener != null)
       return listener.onPreferenceClick(pref);
+    if (pref instanceof android.preference.TwoStatePreference)
+    {
+      android.preference.TwoStatePreference checkbox =
+        (android.preference.TwoStatePreference)pref;
+      checkbox.setChecked(!checkbox.isChecked());
+      return true;
+    }
     try
     {
       java.lang.reflect.Method m =
@@ -327,6 +345,8 @@ public class SettingsActivity extends PreferenceActivity
     }
     catch (Exception e)
     {
+      android.util.Log.e("SettingsSearch",
+          "Could not trigger the preference " + pref.getKey(), e);
       return false;
     }
   }
