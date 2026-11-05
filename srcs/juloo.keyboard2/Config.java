@@ -347,9 +347,6 @@ public final class Config
     public void key_up(KeyValue value, Pointers.Modifiers mods);
     public void mods_changed(Pointers.Modifiers mods);
     public void suggestion_entered(String text);
-    /** Whether a tap on this modifier should act on the selected text
-        instead of latching it. */
-    public boolean modifier_transforms_selection(KeyValue kv);
     /** A word gesture (key to key swipe) has been performed, decode it. */
     public void word_gesture_input(org.dslul.openboard.inputmethod.latin.common.InputPointers pointers);
   }

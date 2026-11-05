@@ -113,10 +113,7 @@ public final class KeyEventHandler
       case String: send_text(key.getString()); break;
       case Event: _recv.handle_event_key(key.getEvent()); break;
       case Keyevent: send_key_down_up(key.getKeyevent()); break;
-        case Modifier:
-          if (key.getModifier() == KeyValue.Modifier.SHIFT)
-            cycle_selection_case();
-          break;
+      case Modifier: break;
       case Editing: handle_editing_key(key.getEditing()); break;
       case Compose_pending: _recv.set_compose_pending(true); break;
       case Slider: handle_slider(key.getSlider(), key.getSliderRepeat(), false); break;
@@ -131,91 +128,6 @@ public final class KeyEventHandler
   public void mods_changed(Pointers.Modifiers mods)
   {
     update_meta_state(mods);
-  }
-
-  /** Whether a tap on [kv] should act on the selected text instead of
-      latching the modifier: pressing shift while a text selection is active
-      cycles its capitalization. */
-  @Override
-  public boolean modifier_transforms_selection(KeyValue kv)
-  {
-    if (kv.getKind() != KeyValue.Kind.Modifier
-        || kv.getModifier() != KeyValue.Modifier.SHIFT)
-      return false;
-    InputConnection conn = _recv.getCurrentInputConnection();
-    CharSequence sel = (conn == null) ? null : conn.getSelectedText(0);
-    return sel != null && sel.length() > 0;
-  }
-
-  /** Cycle the capitalization of the selected text through lower case,
-      UPPER CASE and Title Case. The selection is kept on the transformed
-      text so that the next press keeps cycling. */
-  void cycle_selection_case()
-  {
-    InputConnection conn = _recv.getCurrentInputConnection();
-    if (conn == null)
-      return;
-    CharSequence sel = conn.getSelectedText(0);
-    if (sel == null || sel.length() == 0)
-      return;
-    String s = sel.toString();
-    String upper = to_upper_case(s);
-    String title = to_title_case(s);
-    String next;
-    if (s.equals(upper))
-      next = title;
-    else if (s.equals(title))
-      next = to_lower_case(s);
-    else
-      next = upper;
-    ExtractedText et = conn.getExtractedText(new ExtractedTextRequest(), 0);
-    int sel_start = (et == null) ? -1 : et.selectionStart;
-    conn.beginBatchEdit();
-    conn.commitText(next, 1);
-    if (sel_start >= 0)
-      conn.setSelection(sel_start, sel_start + next.length());
-    conn.endBatchEdit();
-  }
-
-  /** Change the case of each character on a one to one basis, unlike
-      [String.toUpperCase], so that the length of the text never changes. */
-  static String to_upper_case(String s)
-  {
-    StringBuilder b = new StringBuilder(s.length());
-    for (int i = 0; i < s.length(); i++)
-      b.append(Character.toUpperCase(s.charAt(i)));
-    return b.toString();
-  }
-
-  static String to_lower_case(String s)
-  {
-    StringBuilder b = new StringBuilder(s.length());
-    for (int i = 0; i < s.length(); i++)
-      b.append(Character.toLowerCase(s.charAt(i)));
-    return b.toString();
-  }
-
-  /** Upper case the first letter of each word, lower case the rest. */
-  static String to_title_case(String s)
-  {
-    StringBuilder b = new StringBuilder(s.length());
-    boolean start_of_word = true;
-    for (int i = 0; i < s.length(); i++)
-    {
-      char c = s.charAt(i);
-      if (Character.isLetter(c))
-      {
-        b.append(start_of_word ? Character.toUpperCase(c)
-            : Character.toLowerCase(c));
-        start_of_word = false;
-      }
-      else
-      {
-        b.append(c);
-        start_of_word = true;
-      }
-    }
-    return b.toString();
   }
 
   @Override

@@ -171,11 +171,6 @@ public class Keyboard2View extends View
     invalidate();
   }
 
-  public boolean modifier_transforms_selection(KeyValue k)
-  {
-    return _config.handler.modifier_transforms_selection(k);
-  }
-
   public void onPointerHold(KeyValue k, Pointers.Modifiers mods,
       VibratorCompat.Mode vibration_mode)
   {
