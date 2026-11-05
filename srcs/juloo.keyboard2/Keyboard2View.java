@@ -350,6 +350,9 @@ public class Keyboard2View extends View
       are recorded in. */
   private void rebuild_proximity_info()
   {
+    // Never touch the native library when it failed to load.
+    if (!GestureTyping.instance().lib_available())
+      return;
     if (_keyboard == _proximity_keyboard && _keyWidth == _proximity_key_width)
       return;
     _proximity_keyboard = _keyboard;

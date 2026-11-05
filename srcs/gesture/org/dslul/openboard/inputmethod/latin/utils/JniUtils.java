@@ -17,7 +17,7 @@ public final class JniUtils {
         try {
             System.loadLibrary(JNI_LIB_NAME);
             sHaveGestureLib = true;
-        } catch (UnsatisfiedLinkError ue) {
+        } catch (Throwable ue) {
             Log.e(TAG, "Could not load native library " + JNI_LIB_NAME, ue);
         }
     }

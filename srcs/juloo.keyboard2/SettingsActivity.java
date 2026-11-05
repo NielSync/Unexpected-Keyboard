@@ -9,6 +9,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
+import android.preference.PreferenceGroup;
 import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
 import android.provider.OpenableColumns;
@@ -107,13 +108,19 @@ public class SettingsActivity extends PreferenceActivity
 
   private void add_search_bar()
   {
+    float density = getResources().getDisplayMetrics().density;
     _search_input = new EditText(this);
     _search_input.setHint(R.string.search_settings_hint);
     _search_input.setSingleLine(true);
-    int pad = (int)(8.f * getResources().getDisplayMetrics().density);
+    // Square outlined box, matching the minimal style of the settings.
+    _search_input.setBackgroundResource(R.drawable.search_box);
+    int pad_h = (int)(12.f * density);
+    int pad_v = (int)(9.f * density);
+    _search_input.setPadding(pad_h, pad_v, pad_h, pad_v);
     LinearLayout box = new LinearLayout(this);
     box.setOrientation(LinearLayout.VERTICAL);
-    box.setPadding(pad, pad, pad, 0);
+    int margin = (int)(12.f * density);
+    box.setPadding(margin, margin, margin, (int)(2.f * density));
     box.addView(_search_input, new LinearLayout.LayoutParams(
           ViewGroup.LayoutParams.MATCH_PARENT,
           ViewGroup.LayoutParams.WRAP_CONTENT));
@@ -146,7 +153,7 @@ public class SettingsActivity extends PreferenceActivity
     }
   }
 
-  private static void collect_entries(PreferenceScreen screen,
+  private static void collect_entries(PreferenceGroup screen,
       List<String> path, String breadcrumb, List<SearchEntry> out)
   {
     for (int i = 0; i < screen.getPreferenceCount(); i++)
@@ -165,6 +172,11 @@ public class SettingsActivity extends PreferenceActivity
         List<String> sub_path = new ArrayList<String>(path);
         sub_path.add(p.getKey());
         collect_entries(sub, sub_path, crumb, out);
+      }
+      else if (p instanceof PreferenceGroup)
+      {
+        // Categories are not settings, only index their children.
+        collect_entries((PreferenceGroup)p, path, breadcrumb, out);
       }
       else
       {

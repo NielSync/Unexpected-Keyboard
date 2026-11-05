@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Square outlined box for the settings search field, following the
+     minimal style of the settings interface. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+  <corners android:radius="6dp"/>
+  <solid android:color="@android:color/transparent"/>
+  <stroke android:width="1dp" android:color="?android:attr/textColorHint"/>
+</shape>

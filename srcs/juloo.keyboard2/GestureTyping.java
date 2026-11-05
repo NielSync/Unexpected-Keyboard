@@ -60,7 +60,9 @@ public final class GestureTyping
   }
 
   /** Copy the dictionary pointed to by [uri] into the private storage of the
-      application and load it. Returns [true] on success. */
+      application and load it. Returns [true] on success. Every failure is
+      caught: a broken dictionary or library must never crash the
+      keyboard. */
   public boolean set_dictionary(Context ctx, Uri uri, String display_name)
   {
     File out = new File(ctx.getFilesDir(), DICT_FILE_NAME);
@@ -77,7 +79,7 @@ public final class GestureTyping
       os.close();
       os = null;
     }
-    catch (Exception e)
+    catch (Throwable e)
     {
       Log.e(TAG, "Could not copy the gesture dictionary", e);
       if (os != null)
@@ -90,8 +92,17 @@ public final class GestureTyping
         try { in.close(); } catch (IOException _e) {}
     }
     close_dictionary();
-    _dict = new BinaryDictionary(out.getAbsolutePath(), 0 /* offset */,
-        out.length(), false /* useFullEditDistance */, null /* locale */);
+    try
+    {
+      _dict = new BinaryDictionary(out.getAbsolutePath(), 0 /* offset */,
+          out.length(), false /* useFullEditDistance */, null /* locale */);
+    }
+    catch (Throwable e)
+    {
+      Log.e(TAG, "Could not open the gesture dictionary", e);
+      close_dictionary();
+      return false;
+    }
     if (!_dict.isValidDictionary())
     {
       Log.e(TAG, "The gesture dictionary could not be opened");
@@ -153,12 +164,21 @@ public final class GestureTyping
   }
 
   /** Decode the stroke recorded in [pointers] into suggested words, best
-      first. */
+      first. Never throws: a failure of the native decoder must not crash
+      the keyboard. */
   public String[] decode(InputPointers pointers)
   {
     if (!is_ready())
       return new String[0];
-    return _dict.getSuggestionsFromGesture(pointers,
-        _proximity.getNativeProximityInfo());
+    try
+    {
+      return _dict.getSuggestionsFromGesture(pointers,
+          _proximity.getNativeProximityInfo());
+    }
+    catch (Throwable e)
+    {
+      Log.e(TAG, "Gesture decoding failed", e);
+      return new String[0];
+    }
   }
 }
