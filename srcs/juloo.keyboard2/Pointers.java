@@ -168,12 +168,22 @@ public final class Pointers implements Handler.Callback
     }
     else if ((ptr.flags & FLAG_P_LATCHABLE) != 0)
     {
-      // Latchable but non-special keys must clear latched.
-      if ((ptr.flags & FLAG_P_CLEAR_LATCHED) != 0)
-        clearLatched();
-      ptr.flags |= FLAG_P_LATCHED;
-      ptr.pointerId = -1;
-      _handler.onPointerFlagsChanged(false);
+      if (_handler.modifier_transforms_selection(ptr_value))
+      {
+        // Consume the tap: the handler transforms the selected text instead
+        // of latching the modifier (shift with a text selection).
+        removePtr(ptr);
+        _handler.onPointerUp(ptr_value, ptr.modifiers);
+      }
+      else
+      {
+        // Latchable but non-special keys must clear latched.
+        if ((ptr.flags & FLAG_P_CLEAR_LATCHED) != 0)
+          clearLatched();
+        ptr.flags |= FLAG_P_LATCHED;
+        ptr.pointerId = -1;
+        _handler.onPointerFlagsChanged(false);
+      }
     }
     else
     {
@@ -827,6 +837,10 @@ public final class Pointers implements Handler.Callback
     /** Key is released. [k] is the key that was returned by
         [modifySelectedKey] or [modifySelectedKey]. */
     public void onPointerUp(KeyValue k, Modifiers mods);
+
+    /** Whether a tap on this latchable modifier should act on the selected
+        text instead of latching it. */
+    public boolean modifier_transforms_selection(KeyValue k);
 
     /** Flags changed because latched or locked keys or cancelled pointers. */
     public void onPointerFlagsChanged(boolean shouldVibrate);
