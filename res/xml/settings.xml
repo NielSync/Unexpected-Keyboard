@@ -17,6 +17,13 @@
     <CheckBoxPreference android:key="suggestions" android:title="@string/pref_suggestions_title" android:summary="@string/pref_suggestions_summary" android:defaultValue="true"/>
     <CheckBoxPreference android:key="space_bar_auto_complete" android:title="@string/pref_space_bar_auto_complete_title" android:summary="@string/pref_space_bar_auto_complete_summary" android:defaultValue="false"/>
     <CheckBoxPreference android:key="suggestions_add_space" android:title="@string/pref_suggestions_add_space_title" android:summary="@string/pref_suggestions_add_space_summary" android:defaultValue="true"/>
+    <CheckBoxPreference android:key="force_suggestions" android:title="@string/pref_force_suggestions_title" android:summary="@string/pref_force_suggestions_summary" android:defaultValue="false"/>
+    <CheckBoxPreference android:key="suggestions_ignore_uri" android:title="@string/pref_suggestions_ignore_uri_title" android:summary="@string/pref_suggestions_ignore_uri_summary" android:defaultValue="false"/>
+    <CheckBoxPreference android:key="shift_selection_case" android:title="@string/pref_shift_selection_case_title" android:summary="@string/pref_shift_selection_case_summary" android:defaultValue="true"/>
+  </PreferenceCategory>
+  <PreferenceCategory android:title="@string/pref_category_gesture">
+    <CheckBoxPreference android:key="gesture_typing" android:title="@string/pref_gesture_typing_title" android:summary="@string/pref_gesture_typing_summary" android:defaultValue="false"/>
+    <juloo.keyboard2.prefs.GestureDictionaryPreference android:key="gesture_dictionary" android:title="@string/pref_gesture_dictionary_title" android:summary="@string/pref_gesture_dictionary_none"/>
   </PreferenceCategory>
   <PreferenceCategory android:title="@string/pref_category_typing">
     <ListPreference android:key="swipe_dist" android:title="@string/pref_swipe_dist_title" android:summary="@string/pref_swipe_dist_summary" android:defaultValue="15" android:entries="@array/pref_swipe_dist_entries" android:entryValues="@array/pref_swipe_dist_values"/>
@@ -68,5 +75,9 @@
   </PreferenceCategory>
   <PreferenceCategory android:title="@string/pref_category_clipboard">
     <ListPreference android:key="clipboard_history_duration" android:title="@string/pref_clipboard_history_duration" android:summary="%s" android:defaultValue="5" android:entries="@array/pref_clipboard_duration_entries" android:entryValues="@array/pref_clipboard_duration_values"/>
+  </PreferenceCategory>
+  <PreferenceCategory android:title="@string/backup_category">
+    <Preference android:key="backup_settings" android:title="@string/backup_settings_title" android:summary="@string/backup_settings_summary"/>
+    <Preference android:key="restore_settings" android:title="@string/restore_settings_title" android:summary="@string/restore_settings_summary"/>
   </PreferenceCategory>
 </PreferenceScreen>

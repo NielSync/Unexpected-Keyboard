@@ -173,4 +173,34 @@
     <string name="pref_split_layout_never">Never</string>
     <string name="pref_split_layout_landscape">In landscape orientation</string>
     <string name="pref_split_layout_wide">On wide screens</string>
+
+    <string name="pref_force_suggestions_title">Force suggestions in all fields</string>
+    <string name="pref_force_suggestions_summary">Show the suggestion bar in every text field, even when the app asks not to. Password fields are always excluded.</string>
+    <string name="pref_suggestions_ignore_uri_title">Ignore URL bars</string>
+    <string name="pref_suggestions_ignore_uri_summary">Don\'t show suggestions in URL bars, even when forcing suggestions</string>
+    <string name="pref_shift_selection_case_title">Selection case with shift</string>
+    <string name="pref_shift_selection_case_summary">Pressing shift with a text selection cycles its capitalization (lower, UPPER, Title) instead of latching shift</string>
+
+    <string name="pref_category_gesture">Gesture typing</string>
+    <string name="pref_gesture_typing_title">Word swipe typing</string>
+    <string name="pref_gesture_typing_summary">Swipe across the keys of a word without lifting the finger. Requires a gesture dictionary below. Swipes inside a key are not affected.</string>
+    <string name="pref_gesture_dictionary_title">Gesture dictionary</string>
+    <string name="pref_gesture_dictionary_summary">Binary dictionary used to decode word gestures, in the format used by OpenBoard</string>
+    <string name="pref_gesture_dictionary_none">No dictionary selected</string>
+    <string name="gesture_dictionary_loaded">Dictionary loaded: %s</string>
+    <string name="gesture_dictionary_failed">The dictionary could not be loaded</string>
+    <string name="gesture_library_missing">The gesture library failed to load on this device</string>
+
+    <string name="backup_category">Backup</string>
+    <string name="backup_settings_title">Export settings</string>
+    <string name="backup_settings_summary">Save the current settings to a JSON file</string>
+    <string name="restore_settings_title">Import settings</string>
+    <string name="restore_settings_summary">Load settings from a JSON file previously exported</string>
+    <string name="backup_success">Settings exported</string>
+    <string name="backup_failure">The settings could not be exported</string>
+    <string name="restore_success">Settings imported</string>
+    <string name="restore_failure">The settings file could not be read</string>
+
+    <string name="search_settings_hint">Search settings</string>
+    <string name="search_no_results">No matching setting</string>
 </resources>

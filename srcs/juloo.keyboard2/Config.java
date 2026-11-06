@@ -46,6 +46,14 @@ public final class Config
   public float slide_step_px;
   public boolean suggestions_enabled;
   public boolean suggestions_add_space;
+  /** Show the suggestion bar in every text field. */
+  public boolean force_suggestions;
+  /** Don't show suggestions in URL bars, even when forced. */
+  public boolean suggestions_ignore_uri;
+  /** Cycle the capitalization of the selected text when shift is pressed. */
+  public boolean shift_selection_case;
+  /** Word gesture typing (key to key swiping). */
+  public boolean gesture_typing_enabled;
   // Let the system handle vibration when false.
   public boolean vibrate_custom;
   // Control the vibration if [vibrate_custom] is true.
@@ -150,6 +158,10 @@ public final class Config
     number_row_symbols = number_row.equals("symbols");
     suggestions_enabled = _prefs.getBoolean("suggestions", true);
     suggestions_add_space = _prefs.getBoolean("suggestions_add_space", true);
+    force_suggestions = _prefs.getBoolean("force_suggestions", false);
+    suggestions_ignore_uri = _prefs.getBoolean("suggestions_ignore_uri", false);
+    shift_selection_case = _prefs.getBoolean("shift_selection_case", true);
+    gesture_typing_enabled = _prefs.getBoolean("gesture_typing", false);
     // The baseline for the swipe distance correspond to approximately the
     // width of a key in portrait mode, as most layouts have 10 columns.
     // Multipled by the DPI ratio because most swipes are made in the diagonals.
@@ -338,6 +350,11 @@ public final class Config
     public void key_up(KeyValue value, Pointers.Modifiers mods);
     public void mods_changed(Pointers.Modifiers mods);
     public void suggestion_entered(String text);
+    /** Whether a tap on this modifier should act on the selected text
+        instead of latching it. */
+    public boolean modifier_transforms_selection(KeyValue kv);
+    /** A word gesture (key to key swipe) has been performed, decode it. */
+    public void word_gesture_input(org.dslul.openboard.inputmethod.latin.common.InputPointers pointers);
   }
 
   /** Config migrations. */

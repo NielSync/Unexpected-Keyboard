@@ -73,10 +73,16 @@ public final class DirectBootAwarePreferences
   static void copy_shared_preferences(SharedPreferences src, SharedPreferences dst)
   {
     SharedPreferences.Editor e = dst.edit();
-    Map<String, ?> entries = src.getAll();
-    for (String k : entries.keySet())
+    Map<String, ?> src_entries = src.getAll();
+    Map<String, ?> dst_entries = dst.getAll();
+    for (String k : src_entries.keySet())
     {
-      Object v = entries.get(k);
+      Object v = src_entries.get(k);
+      // Only write the values that changed: writing every key would wake the
+      // keyboard's preferences listener once for each of them.
+      Object dst_v = dst_entries.get(k);
+      if (v == dst_v || (v != null && v.equals(dst_v)))
+        continue;
       if (v instanceof Boolean)
         e.putBoolean(k, (Boolean)v);
       else if (v instanceof Float)

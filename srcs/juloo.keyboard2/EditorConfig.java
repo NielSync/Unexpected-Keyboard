@@ -42,7 +42,7 @@ public final class EditorConfig
 
   public EditorConfig() {}
 
-  public void refresh(EditorInfo info, Resources res)
+  public void refresh(EditorInfo info, Resources res, Config conf)
   {
     int inputType = info.inputType & InputType.TYPE_MASK_CLASS;
     int options = info.imeOptions;
@@ -100,7 +100,8 @@ public final class EditorConfig
     initial_sel_start = info.initialSelStart;
     initial_sel_end = info.initialSelEnd;
     /* Suggestions */
-    should_show_candidates_view = CandidatesView.should_show(info);
+    should_show_candidates_view = CandidatesView.should_show(info,
+        conf.force_suggestions, conf.suggestions_ignore_uri);
   }
 
   String actionLabel_of_imeAction(int action, Resources res)
